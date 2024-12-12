@@ -49,7 +49,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/UwbState.msg"
         "msg/UwbSwitch.msg"
         "msg/VoxelMapCompressed.msg"
-        "msg/VoxelMapState.msg"
+        "msg/VoxelHeightMapState.msg"
         "msg/WirelessController.msg"
   DEPENDENCIES geometry_msgs
 )
