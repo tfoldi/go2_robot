@@ -45,7 +45,7 @@
 #if WASM_RT_INSTALL_SIGNAL_HANDLER
 static bool g_signal_handler_installed = false;
 #ifdef _WIN32
-static void* g_sig_handler_handle = 0;
+static void * g_sig_handler_handle = 0;
 #endif
 #endif
 
@@ -67,14 +67,14 @@ bool wasm_rt_fsgsbase_inst_supported = false;
 #endif
 
 #if WASM_RT_SEGUE_FREE_SEGMENT
-WASM_RT_THREAD_LOCAL void* wasm_rt_last_segment_val = NULL;
+WASM_RT_THREAD_LOCAL void * wasm_rt_last_segment_val = NULL;
 #endif
 
 #if WASM_RT_STACK_DEPTH_COUNT
 WASM_RT_THREAD_LOCAL uint32_t wasm_rt_call_stack_depth;
 WASM_RT_THREAD_LOCAL uint32_t wasm_rt_saved_call_stack_depth;
 #elif WASM_RT_STACK_EXHAUSTION_HANDLER
-static WASM_RT_THREAD_LOCAL void* g_alt_stack = NULL;
+static WASM_RT_THREAD_LOCAL void * g_alt_stack = NULL;
 #endif
 
 #ifndef WASM_RT_TRAP_HANDLER
@@ -85,7 +85,8 @@ WASM_RT_THREAD_LOCAL wasm_rt_jmp_buf g_wasm_rt_jmp_buf;
 extern void WASM_RT_TRAP_HANDLER(wasm_rt_trap_t code);
 #endif
 
-void wasm_rt_trap(wasm_rt_trap_t code) {
+void wasm_rt_trap(wasm_rt_trap_t code)
+{
   assert(code != WASM_RT_TRAP_NONE);
 #if WASM_RT_STACK_DEPTH_COUNT
   wasm_rt_call_stack_depth = wasm_rt_saved_call_stack_depth;
@@ -103,7 +104,8 @@ void wasm_rt_trap(wasm_rt_trap_t code) {
 
 #if WASM_RT_INSTALL_SIGNAL_HANDLER
 
-static LONG os_signal_handler(PEXCEPTION_POINTERS info) {
+static LONG os_signal_handler(PEXCEPTION_POINTERS info)
+{
   if (info->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION) {
     wasm_rt_trap(WASM_RT_TRAP_OOB);
   } else if (info->ExceptionRecord->ExceptionCode == EXCEPTION_STACK_OVERFLOW) {
@@ -112,12 +114,14 @@ static LONG os_signal_handler(PEXCEPTION_POINTERS info) {
   return EXCEPTION_CONTINUE_SEARCH;
 }
 
-static void os_install_signal_handler(void) {
+static void os_install_signal_handler(void)
+{
   g_sig_handler_handle =
-      AddVectoredExceptionHandler(1 /* CALL_FIRST */, os_signal_handler);
+    AddVectoredExceptionHandler(1 /* CALL_FIRST */, os_signal_handler);
 }
 
-static void os_cleanup_signal_handler(void) {
+static void os_cleanup_signal_handler(void)
+{
   RemoveVectoredExceptionHandler(g_sig_handler_handle);
 }
 
@@ -126,7 +130,8 @@ static void os_cleanup_signal_handler(void) {
 #else
 
 #if WASM_RT_INSTALL_SIGNAL_HANDLER
-static void os_signal_handler(int sig, siginfo_t* si, void* unused) {
+static void os_signal_handler(int sig, siginfo_t * si, void * unused)
+{
   if (si->si_code == SEGV_ACCERR) {
     wasm_rt_trap(WASM_RT_TRAP_OOB);
   } else {
@@ -134,7 +139,8 @@ static void os_signal_handler(int sig, siginfo_t* si, void* unused) {
   }
 }
 
-static void os_install_signal_handler(void) {
+static void os_install_signal_handler(void)
+{
   struct sigaction sa;
   memset(&sa, '\0', sizeof(sa));
   sa.sa_flags = SA_SIGINFO;
@@ -151,7 +157,8 @@ static void os_install_signal_handler(void) {
   }
 }
 
-static void os_cleanup_signal_handler(void) {
+static void os_cleanup_signal_handler(void)
+{
   /* Undo what was done in os_install_signal_handler */
   struct sigaction sa;
   memset(&sa, '\0', sizeof(sa));
@@ -164,7 +171,8 @@ static void os_cleanup_signal_handler(void) {
 #endif
 
 #if WASM_RT_STACK_EXHAUSTION_HANDLER
-static bool os_has_altstack_installed() {
+static bool os_has_altstack_installed()
+{
   /* check for altstack already in place */
   stack_t ss;
   if (sigaltstack(NULL, &ss) != 0) {
@@ -176,10 +184,12 @@ static bool os_has_altstack_installed() {
 }
 
 /* These routines set up an altstack to handle SIGSEGV from stack overflow. */
-static void os_allocate_and_install_altstack(void) {
+static void os_allocate_and_install_altstack(void)
+{
   /* verify altstack not already allocated */
-  assert(!g_alt_stack &&
-         "wasm-rt error: tried to re-allocate thread-local alternate stack");
+  assert(
+    !g_alt_stack &&
+    "wasm-rt error: tried to re-allocate thread-local alternate stack");
 
   /* We could check and warn if an altstack is already installed, but some
    * sanitizers install their own altstack, so this warning would fire
@@ -203,10 +213,12 @@ static void os_allocate_and_install_altstack(void) {
   }
 }
 
-static void os_disable_and_deallocate_altstack(void) {
+static void os_disable_and_deallocate_altstack(void)
+{
   /* in debug build, verify altstack allocated */
-  assert(g_alt_stack &&
-         "wasm-rt error: thread-local alternate stack not allocated");
+  assert(
+    g_alt_stack &&
+    "wasm-rt error: thread-local alternate stack not allocated");
 
   /* verify altstack was still in place */
   stack_t ss;
@@ -216,9 +228,10 @@ static void os_disable_and_deallocate_altstack(void) {
   }
 
   if ((!g_alt_stack) || (ss.ss_flags & SS_DISABLE) ||
-      (ss.ss_sp != g_alt_stack) || (ss.ss_size != SIGSTKSZ)) {
+    (ss.ss_sp != g_alt_stack) || (ss.ss_size != SIGSTKSZ))
+  {
     DEBUG_PRINTF(
-        "wasm-rt warning: alternate stack was modified unexpectedly\n");
+      "wasm-rt warning: alternate stack was modified unexpectedly\n");
     return;
   }
 
@@ -236,7 +249,8 @@ static void os_disable_and_deallocate_altstack(void) {
 
 #endif
 
-void wasm_rt_init(void) {
+void wasm_rt_init(void)
+{
   wasm_rt_init_thread();
 #if WASM_RT_INSTALL_SIGNAL_HANDLER
   if (!g_signal_handler_installed) {
@@ -256,7 +270,8 @@ void wasm_rt_init(void) {
   assert(wasm_rt_is_initialized());
 }
 
-bool wasm_rt_is_initialized(void) {
+bool wasm_rt_is_initialized(void)
+{
 #if WASM_RT_STACK_EXHAUSTION_HANDLER
   if (!os_has_altstack_installed()) {
     return false;
@@ -269,7 +284,8 @@ bool wasm_rt_is_initialized(void) {
 #endif
 }
 
-void wasm_rt_free(void) {
+void wasm_rt_free(void)
+{
   assert(wasm_rt_is_initialized());
 #if WASM_RT_INSTALL_SIGNAL_HANDLER
   os_cleanup_signal_handler();
@@ -278,27 +294,31 @@ void wasm_rt_free(void) {
   wasm_rt_free_thread();
 }
 
-void wasm_rt_init_thread(void) {
+void wasm_rt_init_thread(void)
+{
 #if WASM_RT_STACK_EXHAUSTION_HANDLER
   os_allocate_and_install_altstack();
 #endif
 }
 
-void wasm_rt_free_thread(void) {
+void wasm_rt_free_thread(void)
+{
 #if WASM_RT_STACK_EXHAUSTION_HANDLER
   os_disable_and_deallocate_altstack();
 #endif
 }
 
 #if WASM_RT_USE_SEGUE
-void wasm_rt_syscall_set_segue_base(void* base) {
+void wasm_rt_syscall_set_segue_base(void * base)
+{
   if (syscall(SYS_arch_prctl, ARCH_SET_GS, base) != 0) {
     perror("wasm_rt_syscall_set_segue_base error");
     abort();
   }
 }
-void* wasm_rt_syscall_get_segue_base() {
-  void* base;
+void * wasm_rt_syscall_get_segue_base()
+{
+  void * base;
   if (syscall(SYS_arch_prctl, ARCH_GET_GS, &base) != 0) {
     perror("wasm_rt_syscall_get_segue_base error");
     abort();
@@ -317,7 +337,8 @@ void* wasm_rt_syscall_get_segue_base() {
 #include "wasm-rt-impl-tableops.inc"
 #undef WASM_RT_TABLE_OPS_EXTERNREF
 
-const char* wasm_rt_strerror(wasm_rt_trap_t trap) {
+const char * wasm_rt_strerror(wasm_rt_trap_t trap)
+{
   switch (trap) {
     case WASM_RT_TRAP_NONE:
       return "No error";

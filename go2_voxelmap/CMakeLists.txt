@@ -15,13 +15,20 @@ find_package(unitree_go REQUIRED)
 # Include directories
 include_directories(include)
 
+# Agressive optimizations
+add_compile_options(-O3)
+
 # Add the executable
-add_executable(voxelmap_node 
+add_executable(voxelmap_node
   src/voxelmap_node.cpp
-  src/voxel.c 
+  src/lidar_decoder.cpp
+  src/voxel.c
   src/wasm-rt-impl.c
   src/wasm-rt-mem-impl.c
-  include/voxel.h)
+  src/point_cloud_creator.cpp
+  include/voxel.h
+  include/voxelmap_node.hpp
+  include/lidar_decoder.hpp)
 
 # Link libraries
 ament_target_dependencies(voxelmap_node rclcpp sensor_msgs std_msgs unitree_go)

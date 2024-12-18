@@ -26,40 +26,41 @@ extern "C" {
 
 struct w2c_a;
 
-typedef struct w2c_libvoxel {
-  struct w2c_a* w2c_a_instance;
+typedef struct w2c_libvoxel
+{
+  struct w2c_a * w2c_a_instance;
   u32 w2c_g0;
   wasm_rt_memory_t w2c_c;
   wasm_rt_funcref_table_t w2c_h;
 } w2c_libvoxel;
 
-void wasm2c_libvoxel_instantiate(w2c_libvoxel*, struct w2c_a*);
-void wasm2c_libvoxel_free(w2c_libvoxel*);
+void wasm2c_libvoxel_instantiate(w2c_libvoxel *, struct w2c_a *);
+void wasm2c_libvoxel_free(w2c_libvoxel *);
 wasm_rt_func_type_t wasm2c_libvoxel_get_func_type(uint32_t param_count, uint32_t result_count, ...);
 
 /* import: 'a' 'a' */
-u32 w2c_a_a(struct w2c_a*, u32);
+u32 w2c_a_a(struct w2c_a *, u32);
 
 /* import: 'a' 'b' */
-void w2c_a_b(struct w2c_a*, u32, u32, u32);
+void w2c_a_b(struct w2c_a *, u32, u32, u32);
 
 /* export: 'c' */
-wasm_rt_memory_t* w2c_libvoxel_c(w2c_libvoxel* instance);
+wasm_rt_memory_t * w2c_libvoxel_c(w2c_libvoxel * instance);
 
 /* export: 'd' */
-void w2c_libvoxel_d(w2c_libvoxel*);
+void w2c_libvoxel_d(w2c_libvoxel *);
 
 /* export: 'e' */
-u32 w2c_libvoxel_e(w2c_libvoxel*, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32);
+u32 w2c_libvoxel_e(w2c_libvoxel *, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32);
 
 /* export: 'f' */
-u32 w2c_libvoxel_f(w2c_libvoxel*, u32);
+u32 w2c_libvoxel_f(w2c_libvoxel *, u32);
 
 /* export: 'g' */
-void w2c_libvoxel_g(w2c_libvoxel*, u32);
+void w2c_libvoxel_g(w2c_libvoxel *, u32);
 
 /* export: 'h' */
-wasm_rt_funcref_table_t* w2c_libvoxel_h(w2c_libvoxel* instance);
+wasm_rt_funcref_table_t * w2c_libvoxel_h(w2c_libvoxel * instance);
 
 #ifdef __cplusplus
 }

@@ -31,36 +31,36 @@
 extern void WASM_RT_GROW_FAILED_HANDLER();
 #endif
 
-#define C11_MEMORY_LOCK_VAR_INIT(name)                \
+#define C11_MEMORY_LOCK_VAR_INIT(name) \
   if (mtx_init(&(name), mtx_plain) != thrd_success) { \
-    fprintf(stderr, "Lock init failed\n");            \
-    abort();                                          \
+    fprintf(stderr, "Lock init failed\n"); \
+    abort(); \
   }
-#define C11_MEMORY_LOCK_AQUIRE(name)          \
-  if (mtx_lock(&(name)) != thrd_success) {    \
+#define C11_MEMORY_LOCK_AQUIRE(name) \
+  if (mtx_lock(&(name)) != thrd_success) { \
     fprintf(stderr, "Lock acquire failed\n"); \
-    abort();                                  \
+    abort(); \
   }
-#define C11_MEMORY_LOCK_RELEASE(name)         \
-  if (mtx_unlock(&(name)) != thrd_success) {  \
+#define C11_MEMORY_LOCK_RELEASE(name) \
+  if (mtx_unlock(&(name)) != thrd_success) { \
     fprintf(stderr, "Lock release failed\n"); \
-    abort();                                  \
+    abort(); \
   }
 
-#define PTHREAD_MEMORY_LOCK_VAR_INIT(name)      \
+#define PTHREAD_MEMORY_LOCK_VAR_INIT(name) \
   if (pthread_mutex_init(&(name), NULL) != 0) { \
-    fprintf(stderr, "Lock init failed\n");      \
-    abort();                                    \
+    fprintf(stderr, "Lock init failed\n"); \
+    abort(); \
   }
-#define PTHREAD_MEMORY_LOCK_AQUIRE(name)      \
-  if (pthread_mutex_lock(&(name)) != 0) {     \
+#define PTHREAD_MEMORY_LOCK_AQUIRE(name) \
+  if (pthread_mutex_lock(&(name)) != 0) { \
     fprintf(stderr, "Lock acquire failed\n"); \
-    abort();                                  \
+    abort(); \
   }
-#define PTHREAD_MEMORY_LOCK_RELEASE(name)     \
-  if (pthread_mutex_unlock(&(name)) != 0) {   \
+#define PTHREAD_MEMORY_LOCK_RELEASE(name) \
+  if (pthread_mutex_unlock(&(name)) != 0) { \
     fprintf(stderr, "Lock release failed\n"); \
-    abort();                                  \
+    abort(); \
   }
 
 #define WIN_MEMORY_LOCK_VAR_INIT(name) InitializeCriticalSection(&(name))
@@ -70,23 +70,26 @@ extern void WASM_RT_GROW_FAILED_HANDLER();
 #if WASM_RT_USE_MMAP
 
 #ifdef _WIN32
-static void* os_mmap(size_t size) {
-  void* ret = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
+static void * os_mmap(size_t size)
+{
+  void * ret = VirtualAlloc(NULL, size, MEM_RESERVE, PAGE_NOACCESS);
   return ret;
 }
 
-static int os_munmap(void* addr, size_t size) {
+static int os_munmap(void * addr, size_t size)
+{
   // Windows can only unmap the whole mapping
   (void)size; /* unused */
   BOOL succeeded = VirtualFree(addr, 0, MEM_RELEASE);
   return succeeded ? 0 : -1;
 }
 
-static int os_mprotect(void* addr, size_t size) {
+static int os_mprotect(void * addr, size_t size)
+{
   if (size == 0) {
     return 0;
   }
-  void* ret = VirtualAlloc(addr, size, MEM_COMMIT, PAGE_READWRITE);
+  void * ret = VirtualAlloc(addr, size, MEM_COMMIT, PAGE_READWRITE);
   if (ret == addr) {
     return 0;
   }
@@ -94,16 +97,17 @@ static int os_mprotect(void* addr, size_t size) {
   return -1;
 }
 
-static void os_print_last_error(const char* msg) {
+static void os_print_last_error(const char * msg)
+{
   DWORD errorMessageID = GetLastError();
   if (errorMessageID != 0) {
     LPSTR messageBuffer = 0;
     // The api creates the buffer that holds the message
     size_t size = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPSTR)&messageBuffer, 0, NULL);
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+      FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+      (LPSTR)&messageBuffer, 0, NULL);
     (void)size;
     printf("%s. %s\n", msg, messageBuffer);
     LocalFree(messageBuffer);
@@ -113,30 +117,36 @@ static void os_print_last_error(const char* msg) {
 }
 
 #else
-static void* os_mmap(size_t size) {
+static void * os_mmap(size_t size)
+{
   int map_prot = PROT_NONE;
   int map_flags = MAP_ANONYMOUS | MAP_PRIVATE;
-  uint8_t* addr = mmap(NULL, size, map_prot, map_flags, -1, 0);
-  if (addr == MAP_FAILED)
+  uint8_t * addr = mmap(NULL, size, map_prot, map_flags, -1, 0);
+  if (addr == MAP_FAILED) {
     return NULL;
+  }
   return addr;
 }
 
-static int os_munmap(void* addr, size_t size) {
+static int os_munmap(void * addr, size_t size)
+{
   return munmap(addr, size);
 }
 
-static int os_mprotect(void* addr, size_t size) {
+static int os_mprotect(void * addr, size_t size)
+{
   return mprotect(addr, size, PROT_READ | PROT_WRITE);
 }
 
-static void os_print_last_error(const char* msg) {
+static void os_print_last_error(const char * msg)
+{
   perror(msg);
 }
 
 #endif
 
-static uint64_t get_alloc_size_for_mmap(uint64_t max_pages, bool is64) {
+static uint64_t get_alloc_size_for_mmap(uint64_t max_pages, bool is64)
+{
   assert(!is64 && "memory64 is not yet compatible with WASM_RT_USE_MMAP");
 #if WASM_RT_MEMCHECK_GUARD_PAGES
   /* Reserve 8GiB. */
