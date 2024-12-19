@@ -66,13 +66,15 @@ void VoxelMapNode::voxelMapCallback(const unitree_go::msg::VoxelMapCompressed::S
       msg->width[2]        // Z-axis origin
     );
 
+
     // Create point cloud from decoded data
     PointCloudCreator creator(
       decoder_.getBuffer(),
       decoder_.getMemorySize(),
       decoder_.getPositionsOffset(),
       LidarDecoder::MAX_POINTS,
-      msg->resolution
+      msg->resolution,
+      msg->origin
     );
 
     // Publish the point cloud

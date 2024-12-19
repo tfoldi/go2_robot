@@ -36,12 +36,14 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogI
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
-
+from launch_ros.actions import Node
 
 def generate_launch_description():
     lidar = LaunchConfiguration('lidar')
     realsense = LaunchConfiguration('realsense')
     rviz = LaunchConfiguration('rviz')
+    voxelmap = LaunchConfiguration('voxelmap')
+    video = LaunchConfiguration('video')
 
     declare_lidar_cmd = DeclareLaunchArgument(
         'lidar',
@@ -61,6 +63,18 @@ def generate_launch_description():
         description='Launch rviz'
     )
 
+    declare_voxelmap_cmd = DeclareLaunchArgument(
+        'voxelmap',
+        default_value='False',
+        description='Generate voxel map'
+    )
+
+    declare_video_cmd = DeclareLaunchArgument(
+        'video',
+        default_value='True',
+        description='Publish front camera video'
+    )    
+
     robot_description_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('go2_description'),
@@ -71,6 +85,26 @@ def generate_launch_description():
         PythonLaunchDescriptionSource([os.path.join(
             get_package_share_directory('go2_driver'),
             'launch/'), 'go2_driver.launch.py'])
+    )
+
+    voxelmap_node_cmd = Node(
+        package='go2_voxelmap',
+        executable='voxelmap_node',
+        name='voxelmap_node',
+        condition=IfCondition(PythonExpression([voxelmap])),
+        output='screen'
+    )
+
+    video_node_cmd = Node(
+        package='image_transport',
+        executable='republish',
+        name='image_republish_node',
+        arguments=['go2', 'raw'],
+        output='screen',
+        condition=IfCondition(PythonExpression([video])),
+        remappings=[
+            ('in/go2', '/frontvideostream')
+        ]
     )
 
     try:
@@ -106,8 +140,12 @@ def generate_launch_description():
     ld.add_action(declare_lidar_cmd)
     ld.add_action(declare_realsense_cmd)
     ld.add_action(declare_rviz_cmd)
+    ld.add_action(declare_video_cmd)
+    ld.add_action(declare_voxelmap_cmd)
     ld.add_action(robot_description_cmd)
     ld.add_action(lidar_cmd)
+    ld.add_action(voxelmap_node_cmd)
+    ld.add_action(video_node_cmd)
     ld.add_action(realsense_cmd)
     ld.add_action(driver_cmd)
     ld.add_action(rviz_cmd)

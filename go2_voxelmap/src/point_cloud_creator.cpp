@@ -36,7 +36,8 @@ PointCloudCreator::PointCloudCreator(
   size_t heap_size,
   uint32_t positions,
   size_t point_count,
-  double resolution
+  double resolution,
+  std::array<double, 3> position_offset
 )
 : heap_(heap),
   heap_size_(heap_size),
@@ -44,6 +45,7 @@ PointCloudCreator::PointCloudCreator(
   pointCount_(point_count),
   resolution_(resolution)
 {
+  position_offset_ = position_offset;
   validateInputData();
 }
 
@@ -81,10 +83,10 @@ size_t PointCloudCreator::processPoints(sensor_msgs::msg::PointCloud2 & cloud_ms
       continue;
     }
 
-    // Transform coordinates using Unitree Go2 specific resolution scaling
-    float x = static_cast<float>(ui_x * resolution_);
-    float y = static_cast<float>(ui_y * resolution_);
-    float z = static_cast<float>(ui_z * resolution_);
+    // Transform coordinates using Unitree Go2 specific resolution scaling and offset
+    float x = static_cast<float>(ui_x * resolution_) + position_offset_[0];
+    float y = static_cast<float>(ui_y * resolution_) + position_offset_[1];
+    float z = static_cast<float>(ui_z * resolution_) + position_offset_[2];
 
     // Copy to point cloud buffer
     size_t offset = validPoints * cloud_msg.point_step;
@@ -108,8 +110,8 @@ sensor_msgs::msg::PointCloud2 PointCloudCreator::createPointCloud()
 {
   sensor_msgs::msg::PointCloud2 cloudMsg;
 
-  // Set frame and timestamp (map frame is typical for global point clouds)
-  cloudMsg.header.frame_id = "map";
+  // Set frame and timestamp
+  cloudMsg.header.frame_id = "odom";
   cloudMsg.header.stamp = rclcpp::Clock().now();
 
   // Configure point cloud metadata for Unitree Go2 voxel map

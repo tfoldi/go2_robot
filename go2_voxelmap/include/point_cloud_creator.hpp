@@ -73,7 +73,8 @@ public:
     size_t heap_size,
     uint32_t positions,
     size_t point_count,
-    double resolution
+    double resolution,
+    std::array<double, 3> position_offset
   );
 
   /**
@@ -107,6 +108,7 @@ private:
   uint32_t positionsOffset_;         // Offset to positions in the buffer
   size_t pointCount_;                // Total number of points
   double resolution_;                // Spatial resolution scalar
+  std::array<double, 3> position_offset_; // Offset to the odom of the voxel map
 
   // Logging helper
   rclcpp::Logger logger_ = rclcpp::get_logger("point_cloud_creator");
