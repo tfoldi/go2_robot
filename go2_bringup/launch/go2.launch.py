@@ -30,9 +30,9 @@
 
 import os
 
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, PackageNotFoundError
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -73,26 +73,34 @@ def generate_launch_description():
             'launch/'), 'go2_driver.launch.py'])
     )
 
-    lidar_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('hesai_ros_driver'),
-            'launch/'), 'start.py']),
-        condition=IfCondition(PythonExpression([lidar]))
-    )
+    try:
+        lidar_cmd = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(
+                get_package_share_directory('hesai_ros_driver'),
+                'launch/'), 'start.py']),
+            condition=IfCondition(PythonExpression([lidar])))
+    except PackageNotFoundError:
+        lidar_cmd = LogInfo(msg="hesai_ros_driver package not found. Skipping LiDAR launch.")
 
-    realsense_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('realsense2_camera'),
-            'launch/'), 'rs_launch.py']),
-        condition=IfCondition(PythonExpression([realsense]))
-    )
+    try:
+        realsense_cmd = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(
+                get_package_share_directory('realsense2_camera'),
+                'launch/'), 'rs_launch.py']),
+            condition=IfCondition(PythonExpression([realsense]))
+        )
+    except PackageNotFoundError:
+        realsense_cmd = LogInfo(msg="realsense2_camera package not found. Skipping LiDAR launch.")
 
-    rviz_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('go2_rviz'),
-            'launch/'), 'rviz.launch.py']),
-        condition=IfCondition(PythonExpression([rviz]))
-    )
+    try:
+        rviz_cmd = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([os.path.join(
+                get_package_share_directory('go2_rviz'),
+                'launch/'), 'rviz.launch.py']),
+            condition=IfCondition(PythonExpression([rviz]))
+        )
+    except PackageNotFoundError:
+        rviz_cmd = LogInfo(msg="no rviz package found. Skipping rviz launch.")
 
     ld = LaunchDescription()
     ld.add_action(declare_lidar_cmd)
