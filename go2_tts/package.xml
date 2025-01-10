@@ -14,6 +14,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
   <exec_depend>go2_tts_msgs</exec_depend>
+  <exec_depend>unitree_api</exec_depend>
+
 
 
   <member_of_group>rosidl_interface_packages</member_of_group>
