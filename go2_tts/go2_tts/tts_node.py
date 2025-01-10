@@ -122,7 +122,7 @@ class TTSNode(Node):
         
         data = {
             "text": text,
-            "model_id": "eleven_monolingual_v1",
+            "model_id": "eleven_turbo_v2_5",
             "voice_settings": {
                 "stability": 0.5,
                 "similarity_boost": 0.5
@@ -189,6 +189,8 @@ class TTSNode(Node):
             start_req.binary = []
             
             self.audio_pub.publish(start_req)
+
+            time.sleep(1)
             
             # Send WAV data in chunks
             for chunk_idx, chunk in enumerate(chunks, 1):
@@ -206,12 +208,21 @@ class TTSNode(Node):
                 }
                 wav_req.parameter = json.dumps(audio_block)
                 wav_req.binary = []
-                
+
                 self.audio_pub.publish(wav_req)
                 self.get_logger().info(f'Sent chunk {chunk_idx}/{total_chunks} ({len(chunk)} bytes)')
                 
                 # Add a small delay between chunks to prevent flooding
                 time.sleep(0.01)
+
+            # Wait until playback finished
+            audio = AudioSegment.from_wav(io.BytesIO(wav_data))
+            duration_ms = len(audio)
+            duration_s = duration_ms / 1000.0
+
+            self.get_logger().info(f'Waiting for audio playback ({duration_s:.2f} seconds)...')
+            time.sleep(duration_s)
+
 
             # End audio
             end_req = Request()
