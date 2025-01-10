@@ -99,11 +99,12 @@ def generate_launch_description():
         package='image_transport',
         executable='republish',
         name='image_republish_node',
-        arguments=['go2', 'raw'],
+        arguments=['go2', 'compressed'],
         output='screen',
         condition=IfCondition(PythonExpression([video])),
         remappings=[
-            ('in/go2', '/frontvideostream')
+            ('in/go2', 'frontvideostream'),
+            ('out/compressed', 'camera/compressed')
         ]
     )
 
