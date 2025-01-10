@@ -30,22 +30,25 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import rclpy
-from rclpy.node import Node
-from go2_tts_msgs.msg import TTSRequest
-from unitree_api.msg import Request
-import requests
-import json
-from pydub import AudioSegment
-from pydub.playback import play
-import io
-from datetime import datetime
-import os
 import base64
+from datetime import datetime
+import io
+import json
+import os
 import time
 
+from go2_tts_msgs.msg import TTSRequest
+from pydub import AudioSegment
+from pydub.playback import play
+import rclpy
+from rclpy.node import Node
+import requests
+from unitree_api.msg import Request
+
+# flake8: noqa: Q000
 
 class TTSNode(Node):
+
     def __init__(self):
         super().__init__("go2_tts_node")
 
@@ -77,7 +80,7 @@ class TTSNode(Node):
         )
 
     def tts_callback(self, msg):
-        """Handle incoming TTS requests"""
+        """Handle incoming TTS requests."""
         try:
             self.get_logger().info(
                 f'Received TTS request: "{msg.text}" with voice: {msg.voice_name}'
@@ -109,7 +112,7 @@ class TTSNode(Node):
             self.get_logger().error(f"Error processing TTS request: {str(e)}")
 
     def generate_speech(self, text, voice_name):
-        """Generate speech using ElevenLabs API"""
+        """Generate speech using ElevenLabs API."""
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_name}"
 
         headers = {
@@ -134,7 +137,7 @@ class TTSNode(Node):
             return None
 
     def save_wav(self, audio_data, filename):
-        """Save audio data to WAV file and return the WAV data"""
+        """Save audio data to WAV file and return the WAV data."""
         try:
             # Convert MP3 to WAV
             audio = AudioSegment.from_mp3(io.BytesIO(audio_data))
@@ -153,7 +156,7 @@ class TTSNode(Node):
             return None
 
     def play_audio(self, audio_data):
-        """Play audio locally using pydub"""
+        """Play audio locally using pydub."""
         try:
             audio = AudioSegment.from_mp3(io.BytesIO(audio_data))
             play(audio)
@@ -161,11 +164,13 @@ class TTSNode(Node):
             self.get_logger().error(f"Error playing audio: {str(e)}")
 
     def split_into_chunks(self, data, chunk_size=256 * 1024):
-        """Split data into chunks of specified size"""
-        return [data[i : i + chunk_size] for i in range(0, len(data), chunk_size)]  # noqa: E203
+        """Split data into chunks of specified size."""
+        return [
+            data[i : i + chunk_size] for i in range(0, len(data), chunk_size)  # noqa: E203
+        ]  
 
     def play_on_robot(self, wav_data):
-        """Send audio to robot's audio hub in chunks"""
+        """Send audio to robot's audio hub in chunks."""
         try:
             identity = int(time.time())
             chunks = self.split_into_chunks(wav_data)
