@@ -42,6 +42,7 @@ namespace go2_image_transport
 
 Go2Subscriber::Go2Subscriber()
 : logger_(rclcpp::get_logger("Go2Subscriber")),
+  node_(nullptr),
   consecutive_receive_failures_(0),
   p_codec_(),
   p_codec_context_(),
@@ -64,6 +65,7 @@ void Go2Subscriber::subscribeImpl(
   rmw_qos_profile_t custom_qos,
   rclcpp::SubscriptionOptions options)
 {
+  node_ = node;
   logger_ = node->get_logger();
   av_log_set_level(AV_LOG_WARNING);
 
@@ -145,8 +147,7 @@ void Go2Subscriber::internalCallback(
   image->height = p_frame_->height;
   image->step = 3 * p_frame_->width;
   image->encoding = sensor_msgs::image_encodings::BGR8;
-  // TODO: find out what to do with the time_stamp
-  // image->header.stamp = node_
+  image->header.stamp = node_->now();
   image->header.frame_id = "front_camera";
 
   // Set / update sws context

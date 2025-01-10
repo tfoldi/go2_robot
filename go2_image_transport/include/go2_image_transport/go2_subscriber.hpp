@@ -51,6 +51,7 @@ class Go2Subscriber : public image_transport::SubscriberPlugin
 private:
   rclcpp::Logger logger_;
   rclcpp::Subscription<unitree_go::msg::Go2FrontVideoData>::SharedPtr sub_;
+  rclcpp::Node* node_;
 
   int consecutive_receive_failures_;
   const AVCodec * p_codec_;
