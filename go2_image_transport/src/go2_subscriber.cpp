@@ -167,4 +167,4 @@ void Go2Subscriber::internalCallback(
   user_cb(image);
 }
 
-}  // namespace h264_image_transport
+}  // namespace go2_image_transport

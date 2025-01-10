@@ -38,6 +38,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
+
 def generate_launch_description():
     lidar = LaunchConfiguration('lidar')
     realsense = LaunchConfiguration('realsense')
@@ -73,7 +74,7 @@ def generate_launch_description():
         'video',
         default_value='True',
         description='Publish front camera video'
-    )    
+    )
 
     robot_description_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([os.path.join(
